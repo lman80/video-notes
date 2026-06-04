@@ -1,0 +1,56 @@
+appId: com.ashtonmiller.videonotes
+productName: Video Notes
+copyright: Copyright © 2026 Ashton Miller
+
+directories:
+  buildResources: build
+  output: dist
+
+files:
+  - out/**/*
+  - package.json
+
+# Keep packaged size reasonable
+asar: true
+# ffmpeg must live outside the asar archive to be executable at runtime
+asarUnpack:
+  - "**/node_modules/ffmpeg-static/**"
+electronLanguages:
+  - en-US
+
+mac:
+  category: public.app-category.video
+  target:
+    - target: dmg
+      arch:
+        # Apple Silicon. ffmpeg-static bundles the host arch's binary, so build
+        # for the arch you're on (CI handles other arches per-runner).
+        - arm64
+  # Personal/unsigned build — no Apple Developer ID required.
+  identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
+dmg:
+  title: ${productName} ${version}
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: ${productName}-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: Video Notes
+
+linux:
+  target:
+    - AppImage
+  category: AudioVideo
+  artifactName: ${productName}-${version}.${ext}
