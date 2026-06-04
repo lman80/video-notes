@@ -1,6 +1,6 @@
 {
   "name": "video-notes",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Local video review & annotation app — drop a video, pause, draw, and take timestamped notes.",
   "author": "Ashton Miller",
   "license": "MIT",

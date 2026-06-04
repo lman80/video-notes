@@ -18,6 +18,13 @@ import { parseNotesPackage } from '../lib/share'
 
 const EMPTY_SHAPES: Shape[] = []
 const FRAME = 1 / 30 // assumed frame duration for single-frame stepping
+const NEAR_SECONDS = 5 // a saved note's overlay (shape + caption) only shows within this window of its time
+
+/** Is the playhead close enough to a note for its annotation to be shown? */
+function isNearNote(note: Note, t: number): boolean {
+  const end = note.kind === 'audio' && typeof note.rangeEnd === 'number' ? note.rangeEnd : note.time
+  return t >= note.time - NEAR_SECONDS && t <= end + NEAR_SECONDS
+}
 
 function containRect(sw: number, sh: number, vw: number, vh: number): DisplayRect {
   if (!vw || !vh || !sw || !sh) return { left: 0, top: 0, width: sw, height: sh }
@@ -583,16 +590,17 @@ export function Player(): JSX.Element {
   }, [videoId])
 
   const displayShapes = useMemo<Shape[]>(() => {
-    if (playing) return EMPTY_SHAPES
     if (composing) return draftShapes
     if (selectedNoteId) {
       const n = notes.find((x) => x.id === selectedNoteId)
-      return n ? n.shapes : EMPTY_SHAPES
+      if (n && isNearNote(n, currentTime)) return n.shapes
     }
     return EMPTY_SHAPES
-  }, [playing, composing, draftShapes, selectedNoteId, notes])
+  }, [composing, draftShapes, selectedNoteId, notes, currentTime])
 
   const selectedNote = selectedNoteId ? notes.find((n) => n.id === selectedNoteId) : null
+  const showCaption =
+    !!selectedNote && !composing && !!selectedNote.text.trim() && isNearNote(selectedNote, currentTime)
 
   if (!video) return <div className="boot">No video selected.</div>
 
@@ -705,7 +713,7 @@ export function Player(): JSX.Element {
                 onCommitShape={handleCommitShape}
                 onTapPlay={togglePlay}
               />
-              {selectedNote && !composing && selectedNote.text.trim() && (
+              {showCaption && selectedNote && (
                 <div className="review-caption" style={{ borderColor: selectedNote.color }}>
                   {selectedNote.text}
                 </div>
