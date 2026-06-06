@@ -54,6 +54,8 @@ Standard **H.264 video + AAC audio** in `.mp4` or `.mov` — the normal export f
 > - **macOS:** right-click the app → **Open** → **Open** (only needed once). If it's still blocked, run `xattr -cr "/Applications/Video Notes.app"` in Terminal.
 > - **Windows:** SmartScreen may warn — click **More info** → **Run anyway**.
 
+**Staying up to date:** the app checks for a newer version on launch and has a **Check for updates** button on the home screen. When a new version is published here, it shows a **Download** button that opens the latest release.
+
 If a release for your platform isn't there yet, see [Building from source](#building-from-source) — it's one command.
 
 ### Option B — build it yourself
