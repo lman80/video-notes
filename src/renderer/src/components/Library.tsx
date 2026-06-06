@@ -4,6 +4,7 @@ import { plural } from '../lib/format'
 import { generatePoster } from '../lib/poster'
 import { initials, colorForName } from '../lib/author'
 import { AuthorModal } from './AuthorModal'
+import { UpdateChecker } from './UpdateChecker'
 
 const VIDEO_EXT = /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i
 
@@ -178,6 +179,10 @@ export function Library(): JSX.Element {
           </div>
         </div>
       )}
+
+      <footer className="lib-footer">
+        <UpdateChecker />
+      </footer>
 
       {dragging && (
         <div className="drop-overlay">

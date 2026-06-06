@@ -33,6 +33,22 @@ const api = {
   computeWaveform: (absPath: string): Promise<number[] | null> =>
     ipcRenderer.invoke('waveform:compute', absPath),
 
+  /** The running app's version. */
+  appVersion: (): Promise<string> => ipcRenderer.invoke('app:version'),
+
+  /** Ask GitHub whether a newer release exists. */
+  checkForUpdates: (): Promise<{
+    ok: boolean
+    current: string
+    latest?: string
+    newer?: boolean
+    url?: string
+    error?: string
+  }> => ipcRenderer.invoke('updates:check'),
+
+  /** Open an https URL in the user's default browser. */
+  openExternal: (url: string): Promise<void> => ipcRenderer.invoke('shell:open', url),
+
   /** Load the persisted database. */
   readDB: (): Promise<{ version: number; videos: unknown[]; notes: unknown[] }> =>
     ipcRenderer.invoke('store:read'),

@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, dialog, protocol } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog, protocol, net } from 'electron'
 import { join } from 'path'
 import { createReadStream, existsSync, statSync } from 'fs'
 import { Readable } from 'stream'
@@ -6,6 +6,20 @@ import { registerStoreHandlers } from './store'
 import { computeWaveform } from './waveform'
 
 const isDev = !app.isPackaged
+const GITHUB_REPO = 'lman80/video-notes'
+
+/** Numeric "is version a newer than b" (ignores any leading "v"). */
+function isVersionNewer(a: string, b: string): boolean {
+  const pa = a.replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0)
+  const pb = b.replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0)
+  for (let i = 0; i < 3; i++) {
+    const x = pa[i] || 0
+    const y = pb[i] || 0
+    if (x > y) return true
+    if (x < y) return false
+  }
+  return false
+}
 
 /**
  * Map a file extension to a MIME type the <video> element understands.
@@ -167,6 +181,36 @@ function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('waveform:compute', (_e, p: string) => computeWaveform(p))
+
+  ipcMain.handle('app:version', () => app.getVersion())
+
+  ipcMain.handle('shell:open', (_e, url: string) => {
+    if (typeof url === 'string' && /^https:\/\//i.test(url)) shell.openExternal(url)
+  })
+
+  // Lightweight update check: ask GitHub for the latest release and compare.
+  ipcMain.handle('updates:check', async () => {
+    const current = app.getVersion()
+    try {
+      const res = await net.fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`,
+        { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'VideoNotes-Updater' } }
+      )
+      if (!res.ok) return { ok: false, current, error: `GitHub returned ${res.status}` }
+      const data = (await res.json()) as { tag_name?: string; html_url?: string }
+      const latest = String(data.tag_name || '').replace(/^v/, '')
+      if (!latest) return { ok: false, current, error: 'No published release found' }
+      return {
+        ok: true,
+        current,
+        latest,
+        newer: isVersionNewer(latest, current),
+        url: data.html_url || `https://github.com/${GITHUB_REPO}/releases/latest`
+      }
+    } catch {
+      return { ok: false, current, error: 'Could not reach GitHub (are you online?)' }
+    }
+  })
 
   // Export notes to a text/markdown/csv file chosen by the user.
   ipcMain.handle(
