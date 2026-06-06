@@ -153,8 +153,9 @@ kbd {
   color: var(--text-dim);
 }
 .boot-logo {
-  font-size: 30px;
-  color: var(--accent);
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
   animation: pulse 1.4s ease-in-out infinite;
 }
 
@@ -185,12 +186,12 @@ kbd {
   margin: 0;
   letter-spacing: -0.01em;
 }
-.brand-dot {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #9b6bff);
-  box-shadow: 0 0 14px rgba(79, 140, 255, 0.6);
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  object-fit: contain;
+  display: block;
 }
 .lib-body {
   flex: 1;
@@ -224,13 +225,26 @@ kbd {
   box-shadow: var(--shadow);
 }
 .card.is-missing {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity: 0.7;
+  cursor: pointer;
 }
 .card.is-missing:hover {
   transform: none;
-  border-color: var(--border);
+  border-color: var(--danger);
   box-shadow: none;
+}
+.relink-btn {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+.relink-btn:hover {
+  text-decoration: underline;
 }
 .card-thumb {
   aspect-ratio: 16 / 9;

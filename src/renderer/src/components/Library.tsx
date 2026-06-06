@@ -5,6 +5,7 @@ import { generatePoster } from '../lib/poster'
 import { initials, colorForName } from '../lib/author'
 import { AuthorModal } from './AuthorModal'
 import { UpdateChecker } from './UpdateChecker'
+import logoUrl from '../assets/logo.png'
 
 const VIDEO_EXT = /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i
 
@@ -66,6 +67,19 @@ export function Library(): JSX.Element {
     handlePaths(paths)
   }, [handlePaths])
 
+  // Point a moved/missing video at its file again — keeps the same id so all
+  // existing notes stay attached.
+  const relink = useCallback(
+    async (id: string) => {
+      const paths = await window.api.openVideoDialog()
+      if (!paths[0]) return
+      posterAttempts.current.delete(id)
+      patchVideo(id, { path: paths[0], missing: false, poster: undefined, waveform: undefined })
+      openVideo(id)
+    },
+    [patchVideo, openVideo]
+  )
+
   const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
@@ -94,7 +108,7 @@ export function Library(): JSX.Element {
     >
       <header className="lib-header drag">
         <div className="lib-brand">
-          <span className="brand-dot" />
+          <img className="brand-logo" src={logoUrl} alt="Video Notes" draggable={false} />
           <h1>Video Notes</h1>
         </div>
         <div className="lib-header-actions no-drag">
@@ -141,8 +155,8 @@ export function Library(): JSX.Element {
                 <div
                   key={v.id}
                   className={`card ${v.missing ? 'is-missing' : ''}`}
-                  onClick={() => !v.missing && openVideo(v.id)}
-                  title={v.path}
+                  onClick={() => (v.missing ? relink(v.id) : openVideo(v.id))}
+                  title={v.missing ? `${v.path}\n(file not found — click to relink)` : v.path}
                 >
                   <div className="card-thumb">
                     {v.poster ? (
@@ -157,7 +171,16 @@ export function Library(): JSX.Element {
                     <div className="card-name">{v.name}</div>
                     <div className="card-sub">
                       {v.missing ? (
-                        <span className="missing-tag">File not found</span>
+                        <button
+                          className="relink-btn no-drag"
+                          title="Choose the file's new location"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            relink(v.id)
+                          }}
+                        >
+                          ⚠ File not found — Relink…
+                        </button>
                       ) : (
                         <span>{count > 0 ? plural(count, 'note') : 'No notes yet'}</span>
                       )}
